@@ -1,5 +1,5 @@
 "use client"
-import React from "react"
+import React, { useState } from "react"
 
 function page() {
     const [details, setDetails] = useState()
