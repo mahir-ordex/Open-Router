@@ -7,5 +7,5 @@ class signupPayload(BaseModel):
     password:str
 
 class signinPayload(BaseModel):
-    email:EmailStr | None = None
+    email:EmailStr
     password:str
