@@ -1,9 +1,10 @@
 PyJWT
-jose
+python-jose[cryptography]
 redis
 uvicorn
 fastapi
 python-dotenv==1.0.1
+pydantic[email]
 
 
 celery==5.4.0
@@ -14,4 +15,5 @@ sqlalchemy
 alembic
 psycopg2-binary
 passlib[bcrypt]
+bcrypt==4.0.1
 

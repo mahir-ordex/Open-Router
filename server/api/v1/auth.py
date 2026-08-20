@@ -1,16 +1,12 @@
-import select
-
-from alembic.util import status
-from sqlalchemy import Boolean
-from fastapi import APIRouter,Depends
-from server.Schema.auth import signupPayload,signinPayload
-from server.models.user import User
-from server.services.JWT import generate_jwt_token
-from server.utils.bcrypt import hashpassword
-from utils.db import getDb
+from fastapi import APIRouter, Depends, Response
+from fastapi.responses import JSONResponse
+from sqlalchemy import select
 from sqlalchemy.orm import Session
-from fastapi.Responses import JSONResponse
-from fastapi import Response
+from Schema.auth import signupPayload, signinPayload
+from models.user import User
+from services.JWT import generate_jwt_token, verify_jwt_token
+from utils.bcrypt import hashpassword, verify_password
+from utils.db import getDb
 
 routes = APIRouter()
 
@@ -67,16 +63,16 @@ async def signin(res:Response,payload:signinPayload,db:Session=Depends(getDb)):
     if not user:
         return JSONResponse(
             status_code=400,
-            contents={"details":"User Not Found!"}
+            content={"detail":"User Not Found!"}
         )
-    isPasswordTrue = await(payload.password,user.password)
+    isPasswordTrue = verify_password(payload.password, user.password)
 
-    if not isPasswordTrue or isPasswordTrue == false:
+    if not isPasswordTrue:
         return JSONResponse(
             status_code=400,
-            content={"detail":"Enter Valid Password!"}
+            content={"detail":"Invalid Password!"}
         )
-    token = generate_jwt_token(user)    
+    token = await generate_jwt_token(user)    
 
     res = JSONResponse(
         status_code=201,
@@ -90,4 +86,13 @@ async def signin(res:Response,payload:signinPayload,db:Session=Depends(getDb)):
         path="/",
     )
 
+    return res
+
+@routes.get("/logout")
+async def logout(res:Response,db:Session=Depends(getDb)):
+    res = JSONResponse(
+        status_code=200,
+        content={"detail":"User Logout Successfully!"}
+    )
+    res.delete_cookie(key="token",path="/")
     return res

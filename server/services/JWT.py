@@ -1,46 +1,59 @@
 import os
 from sqlalchemy import select
-from sqlalchemy.sql.coercions import expect
-from fastapi import JSONResponse, Request
-from jose import jwt
-from server.Schema.JWT import JWTPayload
-from server.models.user import User
-from server.utils.db import getDb
+from sqlalchemy.orm import Session
+from fastapi import Depends, HTTPException, Request
+from jose import jwt, JWTError
+from Schema.JWT import JWTPayload
+from models.user import User
+from utils.db import getDb
 
 async def generate_jwt_token(payload: JWTPayload):
     if not payload.role or not payload.id:
-        raise JSONResponse(
-            status_code=400,
-            detail="id and role are required",
-        )
-    return jwt.encode({"id":payload.id,"role":payload.role},os.environ["JWT_SECRET_KEY"],algorithm="HS256")
+        raise HTTPException(
+            status_code=400, 
+            detail="Role and User ID are Required!")
+    return jwt.encode({"id":str(payload.id),"role":payload.role},os.environ["JWT_SECRET_KEY"],algorithm="HS256")
 
 
-async def verify_jwt_token(req:Request):
-        db = await getDb()
+async def verify_jwt_token(req: Request, db: Session = Depends(getDb)):
+    token = req.cookies.get("token")
+    if not token:
         authorization = req.headers.get("Authorization")
-        if not authorization:
-            raise JSONResponse(
-                status_code=401,
-                contant={"details":"Authorization header is missing"}
-            )
-        token = authorization.split(" ",1)[1].strip()
+        if authorization:
+            token = authorization.split(" ", 1)[-1].strip()
 
-        dcryption = jwt.decode(token,os.environ["JWT_SECRET_KEY"],algorithm=["HS256"])
+    if not token:
+        raise HTTPException(
+            status_code=401,
+            detail="Authorization header is missing",
+        )
 
-        user = db.scalar(select(User).where(User.id == dcryption.id))
+    try:
+        payload = jwt.decode(
+            token,
+            os.environ["JWT_SECRET_KEY"],
+            algorithms=["HS256"],
+        )
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-        if not user:
-            raise JSONResponse(status_code=404,content={"details":"User Not Found!"})
+    user = db.scalar(select(User).where(User.id == payload["id"]))
 
-        return {
-            "id": str(user.id),
-            "email": user.email,
-            "role": user.role,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "provider": user.provider,
-        }
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User Not Found!",
+        )
+
+    return {
+        "id": str(user.id),
+        "email": user.email,
+        "role": user.role,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "provider": user.provider,
+    }
+
 
 
 

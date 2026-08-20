@@ -5,6 +5,7 @@ load_dotenv()
 from utils.db import init_db
 from models.user import User
 from contextlib import asynccontextmanager
+from api import deps
 
 @asynccontextmanager
 async def lifespan(app:FastAPI):
@@ -12,6 +13,8 @@ async def lifespan(app:FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+app.include_router(deps.routes,prefix="/api")
 
 @app.get("/")
 def read_root():
