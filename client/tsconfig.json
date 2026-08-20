@@ -24,6 +24,8 @@
   },
   "include": [
     "next-env.d.ts",
+    "css.d.ts",
+    "next-font.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
