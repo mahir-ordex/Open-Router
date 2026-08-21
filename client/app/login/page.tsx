@@ -1,12 +1,15 @@
 "use client"
 import Link from "next/link"
 import React,{useState,useEffect} from "react"
+import { signInApi } from "@/api/auth"
+import { useRouter } from "next/navigation"
 
 function page() {
     const [details,setDetails] = useState({
         "email":"",
         "password":""
     })
+    const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -18,7 +21,17 @@ function page() {
     }
   const handleLogin = (e: React.FormEvent) => {
 
-    
+    signInApi(details).then((res) => {
+      if(res.status === 200){
+        console.log(res.data)
+        localStorage.setItem("token",res.data.token)
+        router.push("/")
+      }else{
+        console.error("Login Failed")
+      }
+    }).catch((err) => {
+      console.error("Login Failed")
+    })
   }
 
   return (
