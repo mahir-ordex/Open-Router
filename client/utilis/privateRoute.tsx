@@ -7,7 +7,8 @@ type PrivateRouteProps = {
   children: ReactNode;
 };
 
-const PUBLIC_ROUTES = ["/login", "/register"];
+const PUBLIC_ROUTES = ["/", "/login", "/register"];
+const AUTH_REDIRECT_ROUTES = ["/login", "/register"];
 
 function PrivateRoute({ children }: PrivateRouteProps) {
   const router = useRouter();
@@ -25,7 +26,7 @@ function PrivateRoute({ children }: PrivateRouteProps) {
       return;
     }
 
-    if (isAuthenticated && isPublicRoute) {
+    if (isAuthenticated && AUTH_REDIRECT_ROUTES.includes(pathname ?? "")) {
       void router.replace("/");
       setIsChecking(false);
       return;
@@ -35,7 +36,17 @@ function PrivateRoute({ children }: PrivateRouteProps) {
   }, [pathname, router]);
 
   if (isChecking) {
-    return null;
+    const isPublicRoute = pathname ? PUBLIC_ROUTES.includes(pathname) : false;
+    if (isPublicRoute) {
+      return <>{children}</>;
+    }
+    return (
+      <div
+        className="min-h-screen bg-bg"
+        role="status"
+        aria-label="Loading"
+      />
+    );
   }
 
   return <>{children}</>;

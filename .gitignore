@@ -180,3 +180,5 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 .agents\*
+server/node_modules/zustand/react.js
+/server/node_modules
