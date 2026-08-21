@@ -1,136 +1,58 @@
-"use client";
+"use client"
+import React, { useState } from "react"
+import { signUpApi } from "@/api/auth"
+import { useRouter } from "next/router"
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { signUpApi } from "@/api/auth";
-import { AuthShell } from "@/components/auth/AuthShell";
-import { Field } from "@/components/auth/Field";
-
-export default function RegisterPage() {
-  const router = useRouter();
-  const [details, setDetails] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
-  const [error, setError] = useState("");
-  const [pending, setPending] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setDetails((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    if (details.password !== details.confirmPassword) {
-      setError("Password and confirm password do not match.");
-      return;
+function page() {
+    const [details, setDetails] = useState({
+        "first_name":"",
+        "last_name":"",
+        "email":"",
+        "password":"",
+        "confirmPassword":""
+    })
+    const router = useRouter()
+    const handleSignUp = () => {
+        try {
+            if(details.password !== details.confirmPassword){
+                return "Password and Confirn Password are mismatched"
+            }
+            const res = signUpApi(details)
+            if(res.status == 200){
+                console.log("success")
+            }else{
+                console.error("wrong!")
+            }
+        } catch (error) {
+            console.error("Something Went Wrong!")
+        }
+        
     }
 
-    setPending(true);
-    try {
-      const data = await signUpApi({
-        first_name: details.first_name || null,
-        last_name: details.last_name || null,
-        email: details.email,
-        password: details.password,
-      });
-      localStorage.setItem("token", data?.token ?? "session");
-      router.push("/");
-    } catch {
-      setError("Could not create the account. Try a different email.");
-    } finally {
-      setPending(false);
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name,value} = e.target
+        setDetails((prev) =>({
+            ...prev,
+            [name]:value
+        }))
+
     }
-  };
 
-  return (
-    <AuthShell
-      title="Create account"
-      subtitle="Get an API key and start routing models in a few minutes."
-    >
-      <form onSubmit={handleSignUp} className="flex flex-col gap-4" noValidate>
-        {error ? (
-          <p className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300" role="alert">
-            {error}
-          </p>
-        ) : null}
+    return (
+        <div className="flex min-h-screen">
+            <div className="w-1/2">OPEN Router</div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field
-            id="first_name"
-            name="first_name"
-            label="First name"
-            autoComplete="given-name"
-            value={details.first_name}
-            onChange={handleChange}
-            placeholder="Ada"
-          />
-          <Field
-            id="last_name"
-            name="last_name"
-            label="Last name"
-            autoComplete="family-name"
-            value={details.last_name}
-            onChange={handleChange}
-            placeholder="Lovelace"
-          />
+            <div className="flex w-1/2 items-center justify-center bg-amber-100">
+                <form onSubmit={() => handleSignUp} className="flex flex-col gap-4 items-center justify-center">
+                    <h1 className="font-bold text-2xl">Register Account</h1>
+                    <input onChange={handleChange} name="email"type="text" placeholder="Enter Email" className="border-gray-600 border-2 p-2 rounded w-80" />
+                    <input onChange={handleChange} name="password" type="password" placeholder="Enter Your Password" className="border-gray-600 border-2 p-2 rounded w-80" />
+                    <input onChange={handleChange} name="confirmPassword" type="password" placeholder="Enter Confirm Password" className="border-gray-600 border-2 p-2 rounded w-80" />
+                    <input type="submit" className="p-2 bg-blue-800 text-white rounded w-72" />
+                </form>
+            </div>
         </div>
-        <Field
-          id="email"
-          name="email"
-          label="Email"
-          type="email"
-          autoComplete="email"
-          required
-          value={details.email}
-          onChange={handleChange}
-          placeholder="you@company.com"
-        />
-        <Field
-          id="password"
-          name="password"
-          label="Password"
-          type="password"
-          autoComplete="new-password"
-          required
-          value={details.password}
-          onChange={handleChange}
-          placeholder="At least 8 characters"
-        />
-        <Field
-          id="confirmPassword"
-          name="confirmPassword"
-          label="Confirm password"
-          type="password"
-          autoComplete="new-password"
-          required
-          value={details.confirmPassword}
-          onChange={handleChange}
-          placeholder="Repeat password"
-        />
-
-        <button
-          type="submit"
-          disabled={pending}
-          className="mt-2 inline-flex h-10 items-center justify-center rounded-md bg-fg text-sm font-medium text-bg transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
-          {pending ? "Creating account…" : "Create account"}
-        </button>
-      </form>
-
-      <p className="mt-6 text-center text-sm text-muted">
-        Already have an account?{" "}
-        <Link href="/login" className="text-fg underline-offset-4 hover:underline">
-          Sign in
-        </Link>
-      </p>
-    </AuthShell>
-  );
+    )
 }
+
+export default page

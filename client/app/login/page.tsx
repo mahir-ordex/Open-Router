@@ -1,89 +1,54 @@
-"use client";
+"use client"
+import Link from "next/link"
+import React,{useState,useEffect} from "react"
+import { signInApi } from "@/api/auth"
+import { useRouter } from "next/navigation"
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { signInApi } from "@/api/auth";
-import { AuthShell } from "@/components/auth/AuthShell";
-import { Field } from "@/components/auth/Field";
-
-export default function LoginPage() {
-  const router = useRouter();
-  const [details, setDetails] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
-  const [pending, setPending] = useState(false);
+function page() {
+    const [details,setDetails] = useState({
+        "email":"",
+        "password":""
+    })
+    const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setDetails((prev) => ({ ...prev, [name]: value }));
-  };
+    const { name, value } = e.target
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setPending(true);
-
-    try {
-      const data = await signInApi(details);
-      localStorage.setItem("token", data?.token ?? "session");
-      router.push("/");
-    } catch {
-      setError("Email or password is incorrect.");
-    } finally {
-      setPending(false);
+    setDetails((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
     }
-  };
+  const handleLogin = (e: React.FormEvent) => {
+
+    signInApi(details).then((res) => {
+      if(res.status === 200){
+        console.log(res.data)
+        localStorage.setItem("token",res.data.token)
+        router.push("/")
+      }else{
+        console.error("Login Failed")
+      }
+    }).catch((err) => {
+      console.error("Login Failed")
+    })
+  }
 
   return (
-    <AuthShell
-      title="Sign in"
-      subtitle="Use the email and password you registered with."
-    >
-      <form onSubmit={handleLogin} className="flex flex-col gap-4" noValidate>
-        {error ? (
-          <p className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300" role="alert">
-            {error}
-          </p>
-        ) : null}
+    <div className="flex min-h-screen">
+      <div className="w-1/2">OPEN Router</div>
 
-        <Field
-          id="email"
-          name="email"
-          label="Email"
-          type="email"
-          autoComplete="email"
-          required
-          value={details.email}
-          onChange={handleChange}
-          placeholder="you@company.com"
-        />
-        <Field
-          id="password"
-          name="password"
-          label="Password"
-          type="password"
-          autoComplete="current-password"
-          required
-          value={details.password}
-          onChange={handleChange}
-          placeholder="Your password"
-        />
-
-        <button
-          type="submit"
-          disabled={pending}
-          className="mt-2 inline-flex h-10 items-center justify-center rounded-md bg-fg text-sm font-medium text-bg transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
-          {pending ? "Signing in…" : "Sign in"}
-        </button>
-      </form>
-
-      <p className="mt-6 text-center text-sm text-muted">
-        No account?{" "}
-        <Link href="/register" className="text-fg underline-offset-4 hover:underline">
-          Create one
-        </Link>
-      </p>
-    </AuthShell>
-  );
+      <div className="flex w-1/2 items-center justify-center bg-amber-100">
+        <form onSubmit={handleLogin} className="flex flex-col gap-4 items-center justify-center">
+        <h1 className="font-bold text-2xl">Login</h1>
+          <input name="email" type="text" onChange={handleChange} placeholder="Enter Email" className="border-gray-600 border-2 p-2 rounded w-80"/>
+          <input name="password" type="password" onChange={handleChange} placeholder="Enter Password" className="border-gray-600 border-2 p-2 rounded w-80"/>
+          <Link className="pl-52 font-extralight text-sm text-blue-900" href="/register">Create Account?</Link>
+          <input type="submit" className="px-2 p-2 text-center bg-blue-800 text-white rounded w-72"/>
+        </form>
+      </div>
+    </div>
+  )
 }
+
+export default page

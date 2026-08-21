@@ -11,7 +11,7 @@ export const signInApi = async (payload: { email: string; password: string }) =>
     }
 };
 
-export const signUpApi = async (payload: { first_name: (string | null), last_name: (string | null), email: string, password: string }) => {
+export const signUPApi = async (payload: { first_name: (string | null), last_name: (string | null), email: string, password: string }) => {
     try {
         const res = await api.post(`${path}/signup`, payload)
         return res.data
